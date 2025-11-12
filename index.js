@@ -459,25 +459,54 @@ function actionBlocks({ subjectGuess }) {
 }
 
 /* =========================
-   Event: watch messages in WATCH_CHANNEL for the 5 subjects
+   Event: watch messages in WATCH_CHANNEL for matching subjects
+   - More tolerant: allow file_share, bot_message, message_changed
+   - If message_changed, normalize to the inner event.message payload
 ========================= */
 app.event('message', async ({ event, client, logger }) => {
   try {
+    // Debug line to see what Slack is actually sending
+    logger?.info?.({
+      gotMessage: true,
+      channel: event.channel,
+      subtype: event.subtype || '',
+      hasFiles: Array.isArray(event.files),
+      hasAttachments: Array.isArray(event.attachments),
+      hasBlocks: Array.isArray(event.blocks),
+      hasText: !!event.text,
+      ts: event.ts
+    });
+
     if (!WATCH_CHANNEL) return;
     if (event.channel !== WATCH_CHANNEL) return;
-    if (event.subtype && event.subtype !== 'file_share') return; // email-to-slack is usually file_share
 
-    const subj = extractSubjectFromSlackEmail(event);
-    if (!subj) return;
+    // Normalize: if Slack sends a "message_changed" wrapper, use the inner message
+    const subtype = event.subtype || '';
+    const base = (subtype === 'message_changed' && event.message) ? event.message : event;
+
+    // Allow common subtypes for Email-to-Slack posts; ignore others
+    if (subtype && !['file_share', 'bot_message', 'message_changed'].includes(subtype)) {
+      return;
+    }
+
+    // Extract subject from the normalized payload
+    const subj = extractSubjectFromSlackEmail(base);
+    if (!subj) {
+      logger?.info?.({ skipNoSubject: true });
+      return;
+    }
 
     const matched = SUBJECT_PATTERNS.some(re => re.test(subj));
-    if (!matched) return;
+    if (!matched) {
+      logger?.info?.({ skipNoMatch: true, subj });
+      return;
+    }
 
-    // Post Reply/Forward controls into the thread
+    // Post Reply/Forward controls into the thread (root ts of the visible message)
     await client.chat.postMessage({
       channel: event.channel,
-      thread_ts: event.ts,
-      text: `Email actions`,
+      thread_ts: base.ts || event.ts,
+      text: 'Email actions',
       blocks: actionBlocks({ subjectGuess: subj })
     });
   } catch (e) {
