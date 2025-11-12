@@ -28,14 +28,36 @@ const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
 
 /* =========================
    Subject patterns to watch
-   (optional "Fwd: " prefix; order # varies for #3–#5)
+   (optional "Fwd: " prefix; order # varies for order C# / Order #)
 ========================= */
 const SUBJECT_PATTERNS = [
+  // 1–5 (original)
   /^(?:Fwd:\s*)?Your order is confirmed - no further action needed!$/i,
   /^(?:Fwd:\s*)?Refund notification$/i,
   /^(?:Fwd:\s*)?A shipment from order C#\d{3,6} is out for delivery$/i,
   /^(?:Fwd:\s*)?A shipment from order C#\d{3,6} has been delivered$/i,
-  /^(?:Fwd:\s*)?A shipment from order C#\d{3,6} is on the way$/i
+  /^(?:Fwd:\s*)?A shipment from order C#\d{3,6} is on the way$/i,
+
+  // 6. "Order confirmed, no further action needed!"
+  /^(?:Fwd:\s*)?Order confirmed, no further action needed!$/i,
+
+  // 7. "URGENT - COULD NOT PROCESS PAYMENT"
+  /^(?:Fwd:\s*)?URGENT - COULD NOT PROCESS PAYMENT$/i,
+
+  // 8. "Welcome to the Carismo family!"
+  /^(?:Fwd:\s*)?Welcome to the Carismo family!$/i,
+
+  // 9. "Your Carismo order is ready for pickup"
+  /^(?:Fwd:\s*)?Your Carismo order is ready for pickup$/i,
+
+  // 10. "Your order has been picked up"
+  /^(?:Fwd:\s*)?Your order has been picked up$/i,
+
+  // 11. "Carismo $10 store credit" (any $ amount)
+  /^(?:Fwd:\s*)?Carismo \$\d+(?:\.\d{2})? store credit$/i,
+
+  // 12. "Order #9999 has been canceled" (any order number)
+  /^(?:Fwd:\s*)?Order #\d{3,6} has been canceled$/i
 ];
 
 /* =========================
