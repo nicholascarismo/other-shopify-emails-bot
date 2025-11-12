@@ -65,11 +65,18 @@ const SUBJECT_PATTERNS = [
 ========================= */
 function normalizeSubjForSearch(s) {
   let out = String(s || '').trim();
-  // Strip any number of leading "Re:" or "Fwd:" prefixes (in any order)
-  // e.g., "Fwd: Re: Fwd: Subject" -> "Subject"
+
+  // Strip any number of leading "Re:" or "Fwd:" prefixes (any order, chained)
   while (/^(?:re:|fwd?:)\s*/i.test(out)) {
     out = out.replace(/^(?:re:|fwd?:)\s*/i, '');
   }
+
+  // Strip any number of leading bracketed tags like "[TEST]", "[EXTERNAL]", etc.
+  // Handles stacks: "[TEST] [FOO] Subject" -> "Subject"
+  while (/^\[[^\]]+\]\s*/.test(out)) {
+    out = out.replace(/^\[[^\]]+\]\s*/, '');
+  }
+
   return out.trim();
 }
 
