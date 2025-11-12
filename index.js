@@ -64,9 +64,13 @@ const SUBJECT_PATTERNS = [
    Basic utils
 ========================= */
 function normalizeSubjForSearch(s) {
-  return String(s || '')
-    .replace(/^\s*(re:|fwd?:)\s*/i, '')
-    .trim();
+  let out = String(s || '').trim();
+  // Strip any number of leading "Re:" or "Fwd:" prefixes (in any order)
+  // e.g., "Fwd: Re: Fwd: Subject" -> "Subject"
+  while (/^(?:re:|fwd?:)\s*/i.test(out)) {
+    out = out.replace(/^(?:re:|fwd?:)\s*/i, '');
+  }
+  return out.trim();
 }
 
 // Prefer Slack “Email” file’s subject when present
@@ -496,9 +500,12 @@ app.event('message', async ({ event, client, logger }) => {
       return;
     }
 
-    const matched = SUBJECT_PATTERNS.some(re => re.test(subj));
+    // Normalize away any leading Re:/Fwd: prefixes before regex matching
+    const normSubj = normalizeSubjForSearch(subj);
+
+    const matched = SUBJECT_PATTERNS.some(re => re.test(normSubj));
     if (!matched) {
-      logger?.info?.({ skipNoMatch: true, subj });
+      logger?.info?.({ skipNoMatch: true, subj, normSubj });
       return;
     }
 
