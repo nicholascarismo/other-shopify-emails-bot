@@ -56,8 +56,8 @@ const SUBJECT_PATTERNS = [
   // 11. "Carismo $10 store credit" (any $ amount)
   /^(?:Fwd:\s*)?Carismo \$\d+(?:\.\d{2})? store credit$/i,
 
-  // 12. "Order #9999 has been canceled" (any order number)
-  /^(?:Fwd:\s*)?Order #\d{3,6} has been canceled$/i,
+  // 12. "Order C#9999 has been canceled" or "Order #9999 has been canceled" (any order number)
+  /^(?:Fwd:\s*)?Order (?:C#|#)\d{3,6} has been canceled$/i,
 
   // 13. "Important Note About Your Carismo Order"
   // (normalizeSubjForSearch already strips "Re:" / "Fwd:" and "[TEST]" tags)
